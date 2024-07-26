@@ -1,102 +1,72 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
 }
 
-.app-container {
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    width: 90%;
-    max-width: 1200px;
-}
-
-header {
-    background-color: #4a4a4a;
-    color: #ffffff;
-    padding: 20px;
+.container {
     text-align: center;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
-    font-size: 24px;
-    font-weight: 300;
+.canvas-container {
+    margin: 20px 0;
 }
 
-main {
+#canvas {
+    border: 2px solid #000;
+    background-color: #fff;
+}
+
+.controls {
     display: flex;
     flex-direction: column;
-    padding: 20px;
-}
-
-.toolbar {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 20px;
 }
 
 .tool-group {
     display: flex;
-    gap: 5px;
+    justify-content: center;
     align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.tool, button {
-    background-color: #f0f0f0;
-    border: none;
-    border-radius: 5px;
-    color: #4a4a4a;
-    cursor: pointer;
+button, select {
+    padding: 10px 20px;
     font-size: 16px;
-    padding: 10px;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.tool:hover, button:hover {
-    background-color: #e0e0e0;
-}
-
-.tool.active {
-    background-color: #4a4a4a;
-    color: #ffffff;
-}
-
-input[type="color"] {
-    width: 40px;
-    height: 40px;
-    padding: 0;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
     border: none;
     border-radius: 5px;
-    cursor: pointer;
 }
 
-input[type="range"] {
+button:hover, select:hover {
+    background-color: #45a049;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+#lineWidth {
     width: 100px;
 }
 
-.canvas-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f9f9f9;
-    border-radius: 5px;
+#colorPicker {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
     overflow: hidden;
 }
-
-#canvas {
-    background-color: #ffffff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}   

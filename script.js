@@ -1,78 +1,98 @@
 // used claudeai to explore new functions and enjoyed a lot 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const tools = document.querySelectorAll('.tool');
+const clearButton = document.getElementById('clear');
 const colorPicker = document.getElementById('colorPicker');
 const lineWidthInput = document.getElementById('lineWidth');
 const lineWidthValue = document.getElementById('lineWidthValue');
-const undoBtn = document.getElementById('undo');
-const redoBtn = document.getElementById('redo');
-const clearBtn = document.getElementById('clear');
-const saveBtn = document.getElementById('save');
-const fillBackgroundBtn = document.getElementById('fillBackground');
+const brushTypeSelect = document.getElementById('brushType');
+const fillStyleSelect = document.getElementById('fillStyle');
+const undoButton = document.getElementById('undo');
+const redoButton = document.getElementById('redo');
+const saveButton = document.getElementById('save');
+
+canvas.width = 800;
+canvas.height = 600;
 
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
-let currentTool = 'pencil';
 let currentColor = colorPicker.value;
-let currentLineWidth = lineWidthInput.value;
+let currentFillStyle = 'stroke';
 let undoStack = [];
 let redoStack = [];
-
-// Set canvas size
-canvas.width = 800;
-canvas.height = 600;
-
-// Initialize canvas
-ctx.fillStyle = '#ffffff';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-saveState();
 
 function startDrawing(e) {
     isDrawing = true;
     [lastX, lastY] = [e.offsetX, e.offsetY];
+    if (currentFillStyle === 'fill') {
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+    }
 }
 
 function draw(e) {
     if (!isDrawing) return;
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
+    
+    if (currentFillStyle === 'stroke') {
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+    } else {
+        ctx.lineTo(e.offsetX, e.offsetY);
+    }
+    
     [lastX, lastY] = [e.offsetX, e.offsetY];
 }
 
-function stopDrawing() {
+    function stopDrawing() {
     if (isDrawing) {
         isDrawing = false;
+        if (currentFillStyle === 'fill') {
+            ctx.closePath();
+            ctx.fill();
+        }
         saveState();
     }
 }
 
-function updateTool(toolName) {
-    currentTool = toolName;
-    tools.forEach(tool => tool.classList.remove('active'));
-    document.getElementById(toolName).classList.add('active');
-    updateBrush();
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    saveState();
 }
 
 function updateColor() {
-    currentColor = colorPicker.value;
+    currentColor=  colorPicker.value;
     updateBrush();
 }
 
 function updateLineWidth() {
-    currentLineWidth = lineWidthInput.value;
-    lineWidthValue.textContent = currentLineWidth;
+    ctx.lineWidth= lineWidthInput.value;
+    lineWidthValue.textContent= lineWidthInput.value;
+}
+
+function updateBrushType() {
+    const brushType = brushTypeSelect.value;
+    ctx.lineCap = brushType === 'square' ? 'butt' : 'round';
+    ctx.lineJoin = brushType === 'square' ? 'miter' : 'round';
+    
+    if (brushType === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+    } else {
+        ctx.globalCompositeOperation = 'source-over';
+    }
+    
     updateBrush();
 }
 
+function updateFillStyle() {
+    currentFillStyle = fillStyleSelect.value;
+}
+
 function updateBrush() {
-    ctx.strokeStyle = currentTool === 'eraser' ? '#ffffff' : currentColor;
-    ctx.lineWidth = currentLineWidth;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.strokeStyle = brushTypeSelect.value=== 'eraser' ? '#ffffff' : currentColor;
+    ctx.fillStyle = currentColor;
 }
 
 function saveState() {
@@ -82,7 +102,7 @@ function saveState() {
 }
 
 function undo() {
-    if (undoStack.length > 1) {
+    if (undoStack.length> 1) {
         redoStack.push(undoStack.pop());
         loadState(undoStack[undoStack.length - 1]);
     }
@@ -107,14 +127,8 @@ function loadState(state) {
 }
 
 function updateUndoRedoButtons() {
-    undoBtn.disabled = undoStack.length <= 1;
-    redoBtn.disabled = redoStack.length === 0;
-}
-
-function clearCanvas() {
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    saveState();
+    undoButton.disabled = undoStack.length <= 1;
+    redoButton.disabled = redoStack.length === 0;
 }
 
 function saveDrawing() {
@@ -124,29 +138,20 @@ function saveDrawing() {
     link.click();
 }
 
-function fillBackground() {
-    ctx.fillStyle = currentColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    saveState();
-}
-
-// Event listeners
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
-
-tools.forEach(tool => {
-    tool.addEventListener('click', () => updateTool(tool.id));
-});
-
+clearButton.addEventListener('click', clearCanvas);
 colorPicker.addEventListener('input', updateColor);
 lineWidthInput.addEventListener('input', updateLineWidth);
-undoBtn.addEventListener('click', undo);
-redoBtn.addEventListener('click', redo);
-clearBtn.addEventListener('click', clearCanvas);
-saveBtn.addEventListener('click', saveDrawing);
-fillBackgroundBtn.addEventListener('click', fillBackground);
+brushTypeSelect.addEventListener('change', updateBrushType);
+fillStyleSelect.addEventListener('change', updateFillStyle);
+undoButton.addEventListener('click', undo);
+redoButton.addEventListener('click', redo);
+saveButton.addEventListener('click', saveDrawing);
 
-// Initialize brush
-updateBrush();
+updateLineWidth();
+updateBrushType();
+updateFillStyle();
+saveState();
