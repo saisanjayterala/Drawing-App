@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drawing App - Version 3</title>
+    <title>Drawing App </title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Simple Drawing App</h1>
+        <h1>Drawing App</h1>
         <div class="canvas-container">
             <canvas id="canvas"></canvas>
         </div>
@@ -16,6 +16,11 @@
             <input type="color" id="colorPicker" value="#000000">
             <input type="range" id="lineWidth" min="1" max="50" value="2">
             <span id="lineWidthValue">2</span>
+            <select id="brushType">
+                <option value="round">Round</option>
+                <option value="square">Square</option>
+                <option value="eraser">Eraser</option>
+            </select>
             <button id="clear">Clear</button>
         </div>
     </div>

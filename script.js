@@ -4,14 +4,15 @@ const clearButton = document.getElementById('clear');
 const colorPicker = document.getElementById('colorPicker');
 const lineWidthInput = document.getElementById('lineWidth');
 const lineWidthValue = document.getElementById('lineWidthValue');
+const brushTypeSelect = document.getElementById('brushType');
 
-// Set canvas size
 canvas.width = 500;
 canvas.height = 400;
 
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
+let currentColor = colorPicker.value;
 
 function startDrawing(e) {
     isDrawing = true;
@@ -36,7 +37,8 @@ function clearCanvas() {
 }
 
 function updateColor() {
-    ctx.strokeStyle = colorPicker.value;
+    currentColor = colorPicker.value;
+    updateBrush();
 }
 
 function updateLineWidth() {
@@ -44,7 +46,24 @@ function updateLineWidth() {
     lineWidthValue.textContent = lineWidthInput.value;
 }
 
-// Event listeners
+function updateBrushType() {
+    const brushType = brushTypeSelect.value;
+    ctx.lineCap = brushType === 'square' ? 'butt' : 'round';
+    ctx.lineJoin = brushType === 'square' ? 'miter' : 'round';
+    
+    if (brushType === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+    } else {
+        ctx.globalCompositeOperation = 'source-over';
+    }
+    
+    updateBrush();
+}
+
+function updateBrush() {
+    ctx.strokeStyle = brushTypeSelect.value === 'eraser' ? '#ffffff' : currentColor;
+}
+
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
@@ -52,11 +71,7 @@ canvas.addEventListener('mouseout', stopDrawing);
 clearButton.addEventListener('click', clearCanvas);
 colorPicker.addEventListener('input', updateColor);
 lineWidthInput.addEventListener('input', updateLineWidth);
+brushTypeSelect.addEventListener('change', updateBrushType);
 
-// Set initial line style
-ctx.strokeStyle = colorPicker.value;
-ctx.lineWidth = lineWidthInput.value;
-ctx.lineCap = 'round';
-
-// Initial update of line width display
 updateLineWidth();
+updateBrushType();

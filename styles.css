@@ -28,7 +28,7 @@ body {
     gap: 10px;
 }
 
-button {
+button, select {
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
