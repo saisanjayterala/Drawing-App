@@ -3,13 +3,17 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const clearButton = document.getElementById('clear');
 const colorPicker = document.getElementById('colorPicker');
+const colorSwatches = document.querySelectorAll('.color-swatch');
 const lineWidthInput = document.getElementById('lineWidth');
 const lineWidthValue = document.getElementById('lineWidthValue');
 const brushTypeSelect = document.getElementById('brushType');
 const fillStyleSelect = document.getElementById('fillStyle');
+const shapeSelect = document.getElementById('shape');
 const undoButton = document.getElementById('undo');
 const redoButton = document.getElementById('redo');
 const saveButton = document.getElementById('save');
+const loadButton = document.getElementById('load');
+const fileInput = document.getElementById('fileInput');
 
 // Set canvas size
 canvas.width = 800;
@@ -20,13 +24,14 @@ let lastX = 0;
 let lastY = 0;
 let currentColor = colorPicker.value;
 let currentFillStyle = 'stroke';
+let currentShape = 'freehand';
 let undoStack = [];
 let redoStack = [];
 
 function startDrawing(e) {
     isDrawing = true;
     [lastX, lastY] = [e.offsetX, e.offsetY];
-    if (currentFillStyle === 'fill') {
+    if (currentShape !== 'freehand') {
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
     }
@@ -35,25 +40,52 @@ function startDrawing(e) {
 function draw(e) {
     if (!isDrawing) return;
     
-    if (currentFillStyle === 'stroke') {
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
+    const currentX = e.offsetX;
+    const currentY = e.offsetY;
+
+    if (currentShape === 'freehand') {
+        drawFreehand(currentX, currentY);
     } else {
-        ctx.lineTo(e.offsetX, e.offsetY);
+        drawShape(currentX, currentY);
     }
-    
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+}
+
+function drawFreehand(currentX, currentY) {
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(currentX, currentY);
+    ctx.stroke();
+    [lastX, lastY] = [currentX, currentY];
+}
+
+function drawShape(currentX, currentY) {
+    const canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    ctx.putImageData(canvasData, 0, 0);
+
+    ctx.beginPath();
+    switch (currentShape) {
+        case 'line':
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            break;
+        case 'rectangle':
+            ctx.rect(lastX, lastY, currentX - lastX, currentY - lastY);
+            break;
+        case 'circle':
+            const radius = Math.sqrt(Math.pow(currentX - lastX, 2) + Math.pow(currentY - lastY, 2));
+            ctx.arc(lastX, lastY, radius, 0, 2 * Math.PI);
+            break;
+    }
+
+    if (currentFillStyle === 'fill') {
+        ctx.fill();
+    }
+    ctx.stroke();
 }
 
 function stopDrawing() {
     if (isDrawing) {
         isDrawing = false;
-        if (currentFillStyle === 'fill') {
-            ctx.closePath();
-            ctx.fill();
-        }
         saveState();
     }
 }
@@ -89,6 +121,10 @@ function updateBrushType() {
 
 function updateFillStyle() {
     currentFillStyle = fillStyleSelect.value;
+}
+
+function updateShape() {
+    currentShape = shapeSelect.value;
 }
 
 function updateBrush() {
@@ -139,6 +175,27 @@ function saveDrawing() {
     link.click();
 }
 
+function loadDrawing() {
+    fileInput.click();
+}
+
+function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                saveState();
+            }
+            img.src = event.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
 // Event listeners
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
@@ -146,15 +203,36 @@ canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 clearButton.addEventListener('click', clearCanvas);
 colorPicker.addEventListener('input', updateColor);
+colorSwatches.forEach(swatch => {
+    swatch.addEventListener('click', () => {
+        currentColor = swatch.style.backgroundColor;
+        colorPicker.value = rgbToHex(currentColor);
+        updateBrush();
+    });
+});
 lineWidthInput.addEventListener('input', updateLineWidth);
 brushTypeSelect.addEventListener('change', updateBrushType);
 fillStyleSelect.addEventListener('change', updateFillStyle);
+shapeSelect.addEventListener('change', updateShape);
 undoButton.addEventListener('click', undo);
 redoButton.addEventListener('click', redo);
 saveButton.addEventListener('click', saveDrawing);
+loadButton.addEventListener('click', loadDrawing);
+fileInput.addEventListener('change', handleFileSelect);
+
+// Helper function to convert RGB to HEX
+function rgbToHex(rgb) {
+    const rgbValues = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    if (!rgbValues) return rgb; // If it's already a hex value or invalid
+    const r = parseInt(rgbValues[1]);
+    const g = parseInt(rgbValues[2]);
+    const b = parseInt(rgbValues[3]);
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
 
 // Set initial brush style
 updateLineWidth();
 updateBrushType();
 updateFillStyle();
+updateShape();
 saveState();
