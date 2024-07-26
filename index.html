@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drawing App</title>
+    <title>Drawing App - Version 7</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Drawing App</h1>
+        <h1>Advanced Drawing App</h1>
         <div class="canvas-container">
             <canvas id="canvas"></canvas>
         </div>
@@ -28,15 +28,23 @@
                     <option value="stroke">Stroke</option>
                     <option value="fill">Fill</option>
                 </select>
+                <select id="shape">
+                    <option value="freehand">Freehand</option>
+                    <option value="line">Line</option>
+                    <option value="rectangle">Rectangle</option>
+                    <option value="circle">Circle</option>
+                </select>
             </div>
             <div class="tool-group">
                 <button id="undo">Undo</button>
                 <button id="redo">Redo</button>
                 <button id="clear">Clear</button>
                 <button id="save">Save</button>
+                <button id="load">Load</button>
             </div>
         </div>
     </div>
+    <input type="file" id="fileInput" style="display: none;" accept="image/*">
     <script src="script.js"></script>
 </body>
 </html>

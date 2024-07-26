@@ -11,6 +11,7 @@ const undoButton = document.getElementById('undo');
 const redoButton = document.getElementById('redo');
 const saveButton = document.getElementById('save');
 
+// Set canvas size
 canvas.width = 800;
 canvas.height = 600;
 
@@ -46,7 +47,7 @@ function draw(e) {
     [lastX, lastY] = [e.offsetX, e.offsetY];
 }
 
-    function stopDrawing() {
+function stopDrawing() {
     if (isDrawing) {
         isDrawing = false;
         if (currentFillStyle === 'fill') {
@@ -63,13 +64,13 @@ function clearCanvas() {
 }
 
 function updateColor() {
-    currentColor=  colorPicker.value;
+    currentColor = colorPicker.value;
     updateBrush();
 }
 
 function updateLineWidth() {
-    ctx.lineWidth= lineWidthInput.value;
-    lineWidthValue.textContent= lineWidthInput.value;
+    ctx.lineWidth = lineWidthInput.value;
+    lineWidthValue.textContent = lineWidthInput.value;
 }
 
 function updateBrushType() {
@@ -91,7 +92,7 @@ function updateFillStyle() {
 }
 
 function updateBrush() {
-    ctx.strokeStyle = brushTypeSelect.value=== 'eraser' ? '#ffffff' : currentColor;
+    ctx.strokeStyle = brushTypeSelect.value === 'eraser' ? '#ffffff' : currentColor;
     ctx.fillStyle = currentColor;
 }
 
@@ -102,7 +103,7 @@ function saveState() {
 }
 
 function undo() {
-    if (undoStack.length> 1) {
+    if (undoStack.length > 1) {
         redoStack.push(undoStack.pop());
         loadState(undoStack[undoStack.length - 1]);
     }
@@ -138,6 +139,7 @@ function saveDrawing() {
     link.click();
 }
 
+// Event listeners
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
@@ -151,6 +153,7 @@ undoButton.addEventListener('click', undo);
 redoButton.addEventListener('click', redo);
 saveButton.addEventListener('click', saveDrawing);
 
+// Set initial brush style
 updateLineWidth();
 updateBrushType();
 updateFillStyle();
