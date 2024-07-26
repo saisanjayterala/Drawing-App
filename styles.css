@@ -21,8 +21,19 @@ body {
     background-color: #fff;
 }
 
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
 button {
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
+}
+
+#lineWidth {
+    width: 100px;
 }
