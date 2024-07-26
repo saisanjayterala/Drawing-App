@@ -1,18 +1,33 @@
+// used claudeai to explore new functions and enjoyed a lot 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const clearButton = document.getElementById('clear');
+const tools = document.querySelectorAll('.tool');
 const colorPicker = document.getElementById('colorPicker');
 const lineWidthInput = document.getElementById('lineWidth');
 const lineWidthValue = document.getElementById('lineWidthValue');
-const brushTypeSelect = document.getElementById('brushType');
-
-canvas.width = 500;
-canvas.height = 400;
+const undoBtn = document.getElementById('undo');
+const redoBtn = document.getElementById('redo');
+const clearBtn = document.getElementById('clear');
+const saveBtn = document.getElementById('save');
+const fillBackgroundBtn = document.getElementById('fillBackground');
 
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
+let currentTool = 'pencil';
 let currentColor = colorPicker.value;
+let currentLineWidth = lineWidthInput.value;
+let undoStack = [];
+let redoStack = [];
+
+// Set canvas size
+canvas.width = 800;
+canvas.height = 600;
+
+// Initialize canvas
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+saveState();
 
 function startDrawing(e) {
     isDrawing = true;
@@ -29,11 +44,17 @@ function draw(e) {
 }
 
 function stopDrawing() {
-    isDrawing = false;
+    if (isDrawing) {
+        isDrawing = false;
+        saveState();
+    }
 }
 
-function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function updateTool(toolName) {
+    currentTool = toolName;
+    tools.forEach(tool => tool.classList.remove('active'));
+    document.getElementById(toolName).classList.add('active');
+    updateBrush();
 }
 
 function updateColor() {
@@ -42,36 +63,90 @@ function updateColor() {
 }
 
 function updateLineWidth() {
-    ctx.lineWidth = lineWidthInput.value;
-    lineWidthValue.textContent = lineWidthInput.value;
-}
-
-function updateBrushType() {
-    const brushType = brushTypeSelect.value;
-    ctx.lineCap = brushType === 'square' ? 'butt' : 'round';
-    ctx.lineJoin = brushType === 'square' ? 'miter' : 'round';
-    
-    if (brushType === 'eraser') {
-        ctx.globalCompositeOperation = 'destination-out';
-    } else {
-        ctx.globalCompositeOperation = 'source-over';
-    }
-    
+    currentLineWidth = lineWidthInput.value;
+    lineWidthValue.textContent = currentLineWidth;
     updateBrush();
 }
 
 function updateBrush() {
-    ctx.strokeStyle = brushTypeSelect.value === 'eraser' ? '#ffffff' : currentColor;
+    ctx.strokeStyle = currentTool === 'eraser' ? '#ffffff' : currentColor;
+    ctx.lineWidth = currentLineWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 }
 
+function saveState() {
+    undoStack.push(canvas.toDataURL());
+    redoStack = [];
+    updateUndoRedoButtons();
+}
+
+function undo() {
+    if (undoStack.length > 1) {
+        redoStack.push(undoStack.pop());
+        loadState(undoStack[undoStack.length - 1]);
+    }
+    updateUndoRedoButtons();
+}
+
+function redo() {
+    if (redoStack.length > 0) {
+        undoStack.push(redoStack.pop());
+        loadState(undoStack[undoStack.length - 1]);
+    }
+    updateUndoRedoButtons();
+}
+
+function loadState(state) {
+    let img = new Image();
+    img.src = state;
+    img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+    };
+}
+
+function updateUndoRedoButtons() {
+    undoBtn.disabled = undoStack.length <= 1;
+    redoBtn.disabled = redoStack.length === 0;
+}
+
+function clearCanvas() {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    saveState();
+}
+
+function saveDrawing() {
+    const link = document.createElement('a');
+    link.download = 'drawing.png';
+    link.href = canvas.toDataURL();
+    link.click();
+}
+
+function fillBackground() {
+    ctx.fillStyle = currentColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    saveState();
+}
+
+// Event listeners
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
-clearButton.addEventListener('click', clearCanvas);
+
+tools.forEach(tool => {
+    tool.addEventListener('click', () => updateTool(tool.id));
+});
+
 colorPicker.addEventListener('input', updateColor);
 lineWidthInput.addEventListener('input', updateLineWidth);
-brushTypeSelect.addEventListener('change', updateBrushType);
+undoBtn.addEventListener('click', undo);
+redoBtn.addEventListener('click', redo);
+clearBtn.addEventListener('click', clearCanvas);
+saveBtn.addEventListener('click', saveDrawing);
+fillBackgroundBtn.addEventListener('click', fillBackground);
 
-updateLineWidth();
-updateBrushType();
+// Initialize brush
+updateBrush();
